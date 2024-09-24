@@ -17,21 +17,22 @@ type apiConfig struct {
 
 func main(){
 	godotenv.Load()
-	dbURL := os.Getenv("dbURL")
-	db, err := sql.Open("postgres", dbURL)
+	DBURL := os.Getenv("DBURL")
+	DB, err := sql.Open("postgres", DBURL)
 	if err != nil {
 		log.Printf("Error connecting to db: %v\n", err)
 	}
 
-	dbQueries := database.New(db)
+	dbQueries := database.New(DB)
 
 	apiConfig := apiConfig{DB: dbQueries}
 	
 	serveMux := http.NewServeMux()
 	
-	serveMux.HandleFunc("GET /v1/err", handlerHealthz)
-	serveMux.HandleFunc("GET /v1/users", handlerError)
+	serveMux.HandleFunc("GET /v1/healthz", handlerHealthz)
+	serveMux.HandleFunc("GET /v1/err", handlerError)
 	serveMux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
+	serveMux.HandleFunc("GET /v1/users", apiConfig.handlerReadUser)
 	
 	port := os.Getenv("PORT")
 	server := &http.Server{

@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,4 +54,17 @@ func (apiConfig apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Reque
 	}
 
 	respondWithJSON(w, http.StatusCreated, createdUser)
+}
+
+func (apiConfig apiConfig)handlerReadUser(w http.ResponseWriter, r *http.Request) {
+	apiKey := strings.TrimPrefix(r.Header.Get("Authorization"), "ApiKey ")
+
+	targetUser, err := apiConfig.DB.ReadUser(context.Background(), apiKey)
+	if err != nil {
+		log.Printf("Error reading user from db: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, targetUser)
 }
