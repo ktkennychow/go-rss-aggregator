@@ -42,10 +42,17 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		UserID: authedUser.ID,
 	})
 	if err != nil {
-		log.Printf("Error creating feed in db: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		respondWithError(w,http.StatusInternalServerError, err.Error())
 	}
 
 	respondWithJSON(w, http.StatusOK, createdFeed)
+}
+
+func (cfg *apiConfig) handlerReadFeeds(w http.ResponseWriter, _ *http.Request) {
+	feeds, err := cfg.DB.ReadFeeds(context.Background())
+	if err != nil {
+		respondWithError(w,http.StatusInternalServerError, err.Error())
+	}
+
+	respondWithJSON(w, http.StatusOK, feeds)
 }

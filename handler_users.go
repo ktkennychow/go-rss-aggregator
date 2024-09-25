@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -24,16 +23,12 @@ func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	dat, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Error reading request body: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		respondWithError(w,http.StatusInternalServerError, err.Error())
 	}
 	
 	err = json.Unmarshal(dat, &userToBeCreated)
 	if err != nil {
-		log.Printf("Error decoding request body: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		respondWithError(w,http.StatusInternalServerError, err.Error())
 	}
 
 	userToBeCreated.ID = uuid.New()
@@ -47,9 +42,7 @@ func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		Name: userToBeCreated.Name,
 	})
 	if err != nil {
-		log.Printf("Error creating user in db: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		respondWithError(w,http.StatusInternalServerError, err.Error())
 	}
 
 	respondWithJSON(w, http.StatusCreated, createdUser)

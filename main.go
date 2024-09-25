@@ -36,6 +36,7 @@ func main(){
 	serveMux.HandleFunc("POST /v1/users", apiCfg.handlerCreateUser)
 	serveMux.HandleFunc("GET /v1/users", apiCfg.middlewareAuth(apiCfg.handlerReadUser))
 	serveMux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
+	serveMux.HandleFunc("GET /v1/feeds", apiCfg.handlerReadFeeds)
 	
 	port := os.Getenv("PORT")
 	server := &http.Server{

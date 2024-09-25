@@ -3,6 +3,6 @@ Authorization: ApiKey 433f7acdf798910514f140545b67426bfcaa92330cb5a66a90bf272e34
 Content-Type: application/json
 
 {
-  "name": "The Boot.dev Blog",
-  "url": "https://blog.boot.dev/index.xml"
+  "name": "Not Boring by Packy McCormick",
+  "url": "https://www.notboring.co/feed"
 }
