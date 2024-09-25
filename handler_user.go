@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,8 +19,8 @@ type User struct {
 	Name string `json:"name"`
 }
 
-func (apiConfig apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
-	newUser := User{}
+func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+	userToBeCreated := User{}
 
 	dat, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -30,22 +29,22 @@ func (apiConfig apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	
-	err = json.Unmarshal(dat, &newUser)
+	err = json.Unmarshal(dat, &userToBeCreated)
 	if err != nil {
 		log.Printf("Error decoding request body: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	newUser.ID = uuid.New()
-	newUser.CreatedAt = time.Now()
-	newUser.UpdatedAt = time.Now()
+	userToBeCreated.ID = uuid.New()
+	userToBeCreated.CreatedAt = time.Now()
+	userToBeCreated.UpdatedAt = time.Now()
 		
-	createdUser, err := apiConfig.DB.CreateUser(context.Background(), database.CreateUserParams{
-		ID: newUser.ID,
-		CreatedAt: newUser.CreatedAt,
-		UpdatedAt: newUser.UpdatedAt,
-		Name: newUser.Name,
+	createdUser, err := cfg.DB.CreateUser(context.Background(), database.CreateUserParams{
+		ID: userToBeCreated.ID,
+		CreatedAt: userToBeCreated.CreatedAt,
+		UpdatedAt: userToBeCreated.UpdatedAt,
+		Name: userToBeCreated.Name,
 	})
 	if err != nil {
 		log.Printf("Error creating user in db: %v", err)
@@ -56,15 +55,6 @@ func (apiConfig apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Reque
 	respondWithJSON(w, http.StatusCreated, createdUser)
 }
 
-func (apiConfig apiConfig)handlerReadUser(w http.ResponseWriter, r *http.Request) {
-	apiKey := strings.TrimPrefix(r.Header.Get("Authorization"), "ApiKey ")
-
-	targetUser, err := apiConfig.DB.ReadUser(context.Background(), apiKey)
-	if err != nil {
-		log.Printf("Error reading user from db: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, targetUser)
+func (cfg *apiConfig)handlerReadUser(w http.ResponseWriter, _ *http.Request, authedUser database.User) {
+	respondWithJSON(w, http.StatusOK, authedUser)
 }
