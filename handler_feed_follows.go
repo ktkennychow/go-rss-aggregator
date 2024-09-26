@@ -38,7 +38,7 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 	feedFollowToBeCreated.CreatedAt = time.Now()
 	feedFollowToBeCreated.UpdatedAt = time.Now()
 		
-	createdFeedFollow, err := cfg.DB.CreateUserFeed(context.Background(), database.CreateUserFeedParams{
+	createdFeedFollow, err := cfg.Queries.CreateUserFeed(context.Background(), database.CreateUserFeedParams{
 		ID: feedFollowToBeCreated.ID,
 		CreatedAt: feedFollowToBeCreated.CreatedAt,
 		UpdatedAt: feedFollowToBeCreated.UpdatedAt,
@@ -54,7 +54,7 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 }
 
 func (cfg *apiConfig) handlerReadFeedFollows(w http.ResponseWriter, _ *http.Request, authedUser database.User) {
-	feedfollows, err := cfg.DB.ReadUserFeeds(context.Background(), authedUser.ID)
+	feedfollows, err := cfg.Queries.ReadUserFeeds(context.Background(), authedUser.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -72,7 +72,7 @@ func (cfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Req
 		return
 	}
 	
-	deletedFeedFollow, err := cfg.DB.DeleteUserFeed(context.Background(), database.DeleteUserFeedParams{
+	deletedFeedFollow, err := cfg.Queries.DeleteUserFeed(context.Background(), database.DeleteUserFeedParams{
 		ID: feedFollowID,
 		UserID: authedUser.ID,
 	})

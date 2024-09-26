@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -12,7 +13,9 @@ import (
 )
 
 type apiConfig struct {
-	DB *database.Queries
+	Queries *database.Queries
+	DB *sql.DB
+	Ctx context.Context
 }
 
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
@@ -20,14 +23,14 @@ type authedHandler func(http.ResponseWriter, *http.Request, database.User)
 func main(){
 	godotenv.Load()
 	DBURL := os.Getenv("DBURL")
-	DB, err := sql.Open("postgres", DBURL)
+	db, err := sql.Open("postgres", DBURL)
 	if err != nil {
 		log.Printf("Error connecting to db: %v\n", err)
 	}
 
-	dbQueries := database.New(DB)
+	dbQueries := database.New(db)
 
-	apiCfg := apiConfig{DB: dbQueries}
+	apiCfg := apiConfig{Queries: dbQueries, DB: db}
 	
 	serveMux := http.NewServeMux()
 	
