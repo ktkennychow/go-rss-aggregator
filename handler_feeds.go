@@ -12,8 +12,17 @@ import (
 	"github.com/ktkennychow/go-rss-aggregator/internal/database"
 )
 
+type Feed struct {
+	ID uuid.UUID `json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	Name string `json:"name"`
+	Url string `json:"url"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, authedUser database.User) {
-	feedToBeCreated := database.Feed{}
+	feedToBeCreated := Feed{}
 
 	dat, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -43,6 +52,7 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 	})
 	if err != nil {
 		respondWithError(w,http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, createdFeed)
@@ -52,6 +62,7 @@ func (cfg *apiConfig) handlerReadFeeds(w http.ResponseWriter, _ *http.Request) {
 	feeds, err := cfg.DB.ReadFeeds(context.Background())
 	if err != nil {
 		respondWithError(w,http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, feeds)

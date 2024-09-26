@@ -9,10 +9,11 @@ import (
 func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey := strings.TrimPrefix(r.Header.Get("Authorization"), "ApiKey ")
-		targetUser, err := cfg.DB.ReadUser(context.Background(), apiKey)
+		authedUser, err := cfg.DB.ReadUser(context.Background(), apiKey)
 		if err != nil {
-			respondWithError(w,http.StatusInternalServerError, err.Error())
+			respondWithError(w,http.StatusInternalServerError, "User with Api key not found" + err.Error())
+			return
 		}
-		handler(w, r, targetUser)
+		handler(w, r, authedUser)
 	}
 }

@@ -33,10 +33,16 @@ func main(){
 	
 	serveMux.HandleFunc("GET /v1/healthz", handlerHealthz)
 	serveMux.HandleFunc("GET /v1/err", handlerError)
+
 	serveMux.HandleFunc("POST /v1/users", apiCfg.handlerCreateUser)
 	serveMux.HandleFunc("GET /v1/users", apiCfg.middlewareAuth(apiCfg.handlerReadUser))
+
 	serveMux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 	serveMux.HandleFunc("GET /v1/feeds", apiCfg.handlerReadFeeds)
+	
+	serveMux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
+	serveMux.HandleFunc("GET /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerReadFeedFollows))
+	serveMux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
 	
 	port := os.Getenv("PORT")
 	server := &http.Server{

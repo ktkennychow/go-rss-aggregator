@@ -24,11 +24,13 @@ func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	dat, err := io.ReadAll(r.Body)
 	if err != nil {
 		respondWithError(w,http.StatusInternalServerError, err.Error())
+		return
 	}
 	
 	err = json.Unmarshal(dat, &userToBeCreated)
 	if err != nil {
 		respondWithError(w,http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	userToBeCreated.ID = uuid.New()
@@ -43,6 +45,7 @@ func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		respondWithError(w,http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, createdUser)
