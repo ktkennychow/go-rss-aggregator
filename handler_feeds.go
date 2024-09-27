@@ -37,8 +37,6 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 	}
 
 	feedToBeCreated.ID = uuid.New()
-	feedToBeCreated.CreatedAt = time.Now()
-	feedToBeCreated.UpdatedAt = time.Now()
 
 	tx, err := cfg.DB.Begin()
 	if err != nil {
@@ -50,8 +48,6 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		
 	createdFeed, err := qtx.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID: feedToBeCreated.ID,
-		CreatedAt: feedToBeCreated.CreatedAt,
-		UpdatedAt: feedToBeCreated.UpdatedAt,
 		Name: feedToBeCreated.Name,
 		Url: feedToBeCreated.Url,
 		UserID: authedUser.ID,
@@ -62,10 +58,10 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	newFeedFollowID := uuid.New()
+
 	createdFeedFollow, err := qtx.CreateUserFeed(context.Background(), database.CreateUserFeedParams{
-		ID: feedToBeCreated.ID,
-		CreatedAt: feedToBeCreated.CreatedAt,
-		UpdatedAt: feedToBeCreated.UpdatedAt,
+		ID: newFeedFollowID,
 		FeedID: feedToBeCreated.ID,
 		UserID: authedUser.ID,
 	})

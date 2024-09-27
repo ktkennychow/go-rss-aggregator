@@ -7,33 +7,24 @@ package database
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 const createUserFeed = `-- name: CreateUserFeed :one
 INSERT INTO users_feeds (id, created_at, updated_at, feed_id, user_id)
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, NOW(), NOW(), $2, $3)
 RETURNING id, created_at, updated_at, user_id, feed_id
 `
 
 type CreateUserFeedParams struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	FeedID    uuid.UUID
-	UserID    uuid.UUID
+	ID     uuid.UUID
+	FeedID uuid.UUID
+	UserID uuid.UUID
 }
 
 func (q *Queries) CreateUserFeed(ctx context.Context, arg CreateUserFeedParams) (UsersFeed, error) {
-	row := q.db.QueryRowContext(ctx, createUserFeed,
-		arg.ID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.FeedID,
-		arg.UserID,
-	)
+	row := q.db.QueryRowContext(ctx, createUserFeed, arg.ID, arg.FeedID, arg.UserID)
 	var i UsersFeed
 	err := row.Scan(
 		&i.ID,
@@ -45,12 +36,11 @@ func (q *Queries) CreateUserFeed(ctx context.Context, arg CreateUserFeedParams) 
 	return i, err
 }
 
-const deleteUserFeed = `-- name: DeleteUserFeed :one
+const deleteUserFeed = `-- name: DeleteUserFeed :exec
 DELETE
 FROM users_feeds
 WHERE id = $1
 AND user_id = $2
-RETURNING id, created_at, updated_at, user_id, feed_id
 `
 
 type DeleteUserFeedParams struct {
@@ -58,17 +48,9 @@ type DeleteUserFeedParams struct {
 	UserID uuid.UUID
 }
 
-func (q *Queries) DeleteUserFeed(ctx context.Context, arg DeleteUserFeedParams) (UsersFeed, error) {
-	row := q.db.QueryRowContext(ctx, deleteUserFeed, arg.ID, arg.UserID)
-	var i UsersFeed
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.UserID,
-		&i.FeedID,
-	)
-	return i, err
+func (q *Queries) DeleteUserFeed(ctx context.Context, arg DeleteUserFeedParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUserFeed, arg.ID, arg.UserID)
+	return err
 }
 
 const readUserFeeds = `-- name: ReadUserFeeds :many

@@ -1,2 +1,2 @@
-DELETE http://localhost:8080/v1/feed_follows/7f077caa-7633-4130-9201-0abed5015719
+DELETE http://localhost:8080/v1/feed_follows/6d597920-e376-457d-a51f-b6606a2bb460
 Authorization: ApiKey 433f7acdf798910514f140545b67426bfcaa92330cb5a66a90bf272e346f313e

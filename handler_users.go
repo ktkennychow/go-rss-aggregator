@@ -34,13 +34,9 @@ func (cfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userToBeCreated.ID = uuid.New()
-	userToBeCreated.CreatedAt = time.Now()
-	userToBeCreated.UpdatedAt = time.Now()
 		
 	createdUser, err := cfg.Queries.CreateUser(context.Background(), database.CreateUserParams{
 		ID: userToBeCreated.ID,
-		CreatedAt: userToBeCreated.CreatedAt,
-		UpdatedAt: userToBeCreated.UpdatedAt,
 		Name: userToBeCreated.Name,
 	})
 	if err != nil {

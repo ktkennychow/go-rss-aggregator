@@ -1,6 +1,6 @@
 -- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, name, apikey)
-VALUES ($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
+VALUES ($1, NOW(), NOW(), $2, encode(sha256(random()::text::bytea), 'hex'))
 RETURNING *;
 
 -- name: ReadUser :one

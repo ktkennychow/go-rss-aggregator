@@ -35,13 +35,9 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 	}
 
 	feedFollowToBeCreated.ID = uuid.New()
-	feedFollowToBeCreated.CreatedAt = time.Now()
-	feedFollowToBeCreated.UpdatedAt = time.Now()
 		
 	createdFeedFollow, err := cfg.Queries.CreateUserFeed(context.Background(), database.CreateUserFeedParams{
 		ID: feedFollowToBeCreated.ID,
-		CreatedAt: feedFollowToBeCreated.CreatedAt,
-		UpdatedAt: feedFollowToBeCreated.UpdatedAt,
 		FeedID: feedFollowToBeCreated.FeedID,
 		UserID: authedUser.ID,
 	})
@@ -72,7 +68,7 @@ func (cfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Req
 		return
 	}
 	
-	deletedFeedFollow, err := cfg.Queries.DeleteUserFeed(context.Background(), database.DeleteUserFeedParams{
+	err = cfg.Queries.DeleteUserFeed(context.Background(), database.DeleteUserFeedParams{
 		ID: feedFollowID,
 		UserID: authedUser.ID,
 	})
@@ -81,5 +77,5 @@ func (cfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Req
 		return 
 	}
 
-	respondWithJSON(w, http.StatusOK, deletedFeedFollow)
+	respondWithJSON(w, http.StatusOK, struct{}{})
 }

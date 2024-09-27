@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/ktkennychow/go-rss-aggregator/internal/database"
 	_ "github.com/lib/pq"
@@ -28,9 +29,11 @@ func main(){
 		log.Printf("Error connecting to db: %v\n", err)
 	}
 
+	ctx := context.Background()
+
 	dbQueries := database.New(db)
 
-	apiCfg := apiConfig{Queries: dbQueries, DB: db}
+	apiCfg := apiConfig{Queries: dbQueries, DB: db, Ctx: ctx}
 	
 	serveMux := http.NewServeMux()
 	
@@ -46,6 +49,13 @@ func main(){
 	serveMux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
 	serveMux.HandleFunc("GET /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerReadFeedFollows))
 	serveMux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
+
+	uuid, err := uuid.Parse("6d597920-e376-457d-a51f-b6606a2bb460")
+	if err != nil {
+		log.Println(err)
+	}
+
+	apiCfg.Queries.UpdateFeedFetched(ctx, uuid)
 	
 	port := os.Getenv("PORT")
 	server := &http.Server{
