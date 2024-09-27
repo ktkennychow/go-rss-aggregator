@@ -18,6 +18,7 @@ type Feed struct {
 	Name string `json:"name"`
 	Url string `json:"url"`
 	UserID uuid.UUID `json:"user_id"`
+	LastFetchedAt *time.Time `json:"last_fetched_at"`
 }
 
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, authedUser database.User) {
@@ -81,13 +82,32 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 	}
 
 	type ResBody struct {
-		Feed database.Feed `json:"feed"`
-		FeedFollow database.UsersFeed `json:"feed_follow"`
+		Feed Feed `json:"feed"`
+		FeedFollow FeedFollow `json:"feed_follow"`
+	}
+
+	var normalizedLastFetchAt *time.Time
+	if (createdFeed.LastFetchedAt.Valid) {
+		normalizedLastFetchAt = &createdFeed.LastFetchedAt.Time
 	}
 
 	resBody := ResBody{
-		Feed: createdFeed,
-		FeedFollow: createdFeedFollow,
+		Feed: Feed{
+			ID: createdFeed.ID,
+			CreatedAt: createdFeed.CreatedAt,
+			UpdatedAt: createdFeed.UpdatedAt,
+			Name: createdFeed.Name,
+			Url: createdFeed.Url,
+			UserID: authedUser.ID,
+			LastFetchedAt: normalizedLastFetchAt,
+		},
+		FeedFollow: FeedFollow{
+			ID: createdFeedFollow.ID,
+			CreatedAt: createdFeedFollow.CreatedAt,
+			UpdatedAt: createdFeedFollow.UpdatedAt,
+			FeedID: createdFeedFollow.FeedID,
+			UserID: authedUser.ID,
+		},
 	}
 
 	respondWithJSON(w, http.StatusOK, resBody)
