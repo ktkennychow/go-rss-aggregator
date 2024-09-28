@@ -3,6 +3,6 @@ Authorization: ApiKey 433f7acdf798910514f140545b67426bfcaa92330cb5a66a90bf272e34
 Content-Type: application/json
 
 {
-  "name": "Test3",
-  "url": "https://www.test3333.co/feed"
+  "name": "Wagslane Blog",
+  "url": "https://wagslane.dev/index.xml"
 }
