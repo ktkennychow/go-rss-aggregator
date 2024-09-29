@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type RSS struct {
@@ -69,43 +70,46 @@ func (cfg *apiConfig) fetchAFeed(url string) (RSS, error) {
 	return rssFeed, nil
 }
 
-func (cfg *apiConfig) fetchNFeedsContinuously(n int32) {
-	nFeeds, err :=cfg.Queries.ReadNFeedsByLastFetchedAt(cfg.Ctx, n)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	wg := sync.WaitGroup{}
-	resultChan := make(chan fetchResult)
-
-	for _, feed := range nFeeds {
-		wg.Add(1)
-		
-		go func(url string) {
-			defer wg.Done()
-
-			rssFeed, err := cfg.fetchAFeed(url)
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-			resultChan <- fetchResult{rssFeed, err}
-		} (feed.Url)
-	}
-
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
+func (cfg *apiConfig) fetchNFeedsContinuously(n int32, interval int) {
+	for {
+		nFeeds, err :=cfg.Queries.ReadNFeedsByLastFetchedAt(cfg.Ctx, n)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		wg := sync.WaitGroup{}
+		resultChan := make(chan fetchResult)
 	
-	for result := range resultChan {
-		if result.err != nil {
-			log.Println("Error fetching RSS feed", result.err)
-			} else {
-				for _, post := range result.feed.Channel.Items {
-					log.Println("Fetched Post Title: ", post.Title)
+		for _, feed := range nFeeds {
+			wg.Add(1)
+			
+			go func(url string) {
+				defer wg.Done()
+	
+				rssFeed, err := cfg.fetchAFeed(url)
+				if err != nil {
+					log.Println(err.Error())
+					return
 				}
-			}
+				resultChan <- fetchResult{rssFeed, err}
+			} (feed.Url)
+		}
+	
+		go func() {
+			wg.Wait()
+			close(resultChan)
+		}()
+		
+		for result := range resultChan {
+			if result.err != nil {
+				log.Println("Error fetching RSS feed", result.err)
+				} else {
+					for _, post := range result.feed.Channel.Items {
+						log.Println("Fetched Post Title: ", post.Title)
+					}
+				}
+		}
+	
+		log.Println("All feeds fetched!")
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
-
-	log.Println("All feeds fetched!")
 }
