@@ -48,17 +48,19 @@ func main(){
 	serveMux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
 	serveMux.HandleFunc("GET /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerReadFeedFollows))
 	serveMux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
+
+	apiCfg.fetchNFeedsContinuously(10)
 	
 	port := os.Getenv("PORT")
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: serveMux, 
 	}
-
+	
 	log.Printf("Server running on %v\n", port)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Printf("Error listening on %v: %v\n", port, err)
 	}
-
+	
 }

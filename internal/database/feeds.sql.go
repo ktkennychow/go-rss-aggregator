@@ -80,15 +80,15 @@ func (q *Queries) ReadFeeds(ctx context.Context) ([]Feed, error) {
 	return items, nil
 }
 
-const readSomeFeedsByLastFetchedAt = `-- name: ReadSomeFeedsByLastFetchedAt :many
+const readNFeedsByLastFetchedAt = `-- name: ReadNFeedsByLastFetchedAt :many
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 FROM feeds
 ORDER BY last_fetched_at IS NULL, last_fetched_at ASC
 LIMIT $1
 `
 
-func (q *Queries) ReadSomeFeedsByLastFetchedAt(ctx context.Context, limit int32) ([]Feed, error) {
-	rows, err := q.db.QueryContext(ctx, readSomeFeedsByLastFetchedAt, limit)
+func (q *Queries) ReadNFeedsByLastFetchedAt(ctx context.Context, limit int32) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, readNFeedsByLastFetchedAt, limit)
 	if err != nil {
 		return nil, err
 	}

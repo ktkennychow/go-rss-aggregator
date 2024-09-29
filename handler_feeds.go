@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"encoding/xml"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -119,36 +117,4 @@ func (cfg *apiConfig) handlerReadFeeds(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, feeds)
-}
-
-type GenericXML struct {
-	XMLName  xml.Name
-	Attrs    []xml.Attr    `xml:",any,attr"`
-	Content  string        `xml:",chardata"`
-	Children []GenericXML  `xml:",any"`
-}
-
-func (cfg *apiConfig) fetchAFeed(url string) (interface{}, error) {
-	var feed GenericXML
-	
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Println("faild to fetch feed" + err.Error())
-		return feed, err
-	}
-	defer resp.Body.Close()
-
-	dat, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("faild to read feed response body" + err.Error())
-		return feed, err
-	}
-	
-	err = xml.Unmarshal(dat, &feed)
-	if err != nil {
-		log.Println("faild to unmarshal feed" + err.Error())
-		return feed, err
-	}
-
-	return feed, nil
 }

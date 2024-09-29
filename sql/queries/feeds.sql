@@ -7,7 +7,7 @@ RETURNING *;
 SELECT *
 FROM feeds;
 
--- name: ReadSomeFeedsByLastFetchedAt :many
+-- name: ReadNFeedsByLastFetchedAt :many
 SELECT *
 FROM feeds
 ORDER BY last_fetched_at IS NULL, last_fetched_at ASC
