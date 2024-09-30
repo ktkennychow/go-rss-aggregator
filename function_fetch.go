@@ -5,31 +5,37 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/ktkennychow/go-rss-aggregator/internal/database"
 )
 
 type RSS struct {
 	XMLName xml.Name `xml:"rss"`
-	Version string   `xml:"version,attr"`
+	Version string  `xml:"version,attr"`
 	Channel Channel  `xml:"channel"`
 }
 
 type Channel struct {
 	Title         string  `xml:"title"`
-	Link          string  `xml:"link"`
+	Link          Link  `xml:"link"`
 	Description   string  `xml:"description"`
 	Generator     string  `xml:"generator"`
 	Language      string  `xml:"language"`
 	LastBuildDate string  `xml:"lastBuildDate"`
-	AtomLink      AtomLink `xml:"http://www.w3.org/2005/Atom link"` // Namespaced element
 	Items         []Item  `xml:"item"`
 }
 
-type AtomLink struct {
-	Href string `xml:"href,attr"`
-	Rel  string `xml:"rel,attr"`
-	Type string `xml:"type,attr"`
+type Link struct {
+	Rel      string `xml:"rel,attr,omitempty"`
+	Href     string `xml:"href,attr"`
+	Type     string `xml:"type,attr,omitempty"`
+	HrefLang string `xml:"hreflang,attr,omitempty"`
+	Title    string `xml:"title,attr,omitempty"`
+	Length   uint   `xml:"length,attr,omitempty"`
 }
 
 type Item struct {
@@ -72,7 +78,9 @@ func (cfg *apiConfig) fetchAFeed(url string) (RSS, error) {
 
 func (cfg *apiConfig) fetchNFeedsContinuously(n int32, interval int) {
 	for {
-		nFeeds, err :=cfg.Queries.ReadNFeedsByLastFetchedAt(cfg.Ctx, n)
+		urlToFeedID := map[string]uuid.UUID{}
+
+		nFeeds, err := cfg.Queries.ReadNFeedsByLastFetchedAt(cfg.Ctx, n)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -80,6 +88,7 @@ func (cfg *apiConfig) fetchNFeedsContinuously(n int32, interval int) {
 		resultChan := make(chan fetchResult)
 	
 		for _, feed := range nFeeds {
+			urlToFeedID[feed.Url] = feed.ID
 			wg.Add(1)
 			
 			go func(url string) {
@@ -104,7 +113,25 @@ func (cfg *apiConfig) fetchNFeedsContinuously(n int32, interval int) {
 				log.Println("Error fetching RSS feed", result.err)
 				} else {
 					for _, post := range result.feed.Channel.Items {
-						log.Println("Fetched Post Title: ", post.Title)
+						parsedTime, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", post.PubDate)
+						if err != nil {
+							log.Println("Error parsing date:", err)
+						}
+						createdPost, err := cfg.Queries.CreatePost(cfg.Ctx, database.CreatePostParams{
+							ID: uuid.New(),
+							Title: post.Title,
+							Url: post.Link,
+							Description: post.Description,
+							PublishedAt: parsedTime,
+							FeedID: urlToFeedID[result.feed.Channel.Link.Href],
+						})
+						if err != nil {
+							if !strings.Contains(err.Error(), "unique_url_published_at") {
+								log.Println("Error creating post in db:", err)
+							}
+							} else {
+							log.Println("Saved a New/Updated Post: ", createdPost.Title)
+						}
 					}
 				}
 		}

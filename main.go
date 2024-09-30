@@ -49,6 +49,8 @@ func main(){
 	serveMux.HandleFunc("GET /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerReadFeedFollows))
 	serveMux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
 
+	serveMux.HandleFunc("GET /v1/posts", apiCfg.middlewareAuth(apiCfg.handlerReadPostsByUser))
+
 	go func() {
 		apiCfg.fetchNFeedsContinuously(10, 60)
 	}()
